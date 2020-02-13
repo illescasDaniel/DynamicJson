@@ -184,6 +184,11 @@ public final class Json {
 	public var array: [Any]? {
 		return self.jsonObject as? [Any]
 	}
+	func array<T>(of type: T.Type) -> [T]? {
+		let selfArray = self.array
+		let mappedArray = selfArray?.map { $0 as? T }
+		return mappedArray?.count == selfArray?.count ? mappedArray?.compactMap { $0 } : nil
+	}
 	public var dictionary: [String: Any]? {
 		return self.jsonObject as? [String: Any]
 	}

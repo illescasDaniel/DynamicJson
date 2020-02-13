@@ -1,7 +1,10 @@
-DynamicJson
--------
+# DynamicJson
 
-A simple way to manage jsons.
+[![Swift version](https://img.shields.io/badge/Swift-5-orange.svg)](https://swift.org/download)
+[![Version](https://img.shields.io/badge/version-1.0-green.svg)](https://github.com/illescasDaniel/Questions/releases)
+[![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/illescasDaniel/DynamicJson/blob/master/LICENSE)
+
+An enjoyable way to manage json objects.
 
 ### Examples:
 ```swift

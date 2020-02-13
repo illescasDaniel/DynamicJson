@@ -9,6 +9,7 @@ final class DynamicJSONTests: XCTestCase {
 			"firstName": "Daniel",
 			"lastName": "Illescas",
 			"someNumber": 22.3,
+			"values": [1.2, 5.3, 78323.23],
 			"parent": {
 				"fullName": {
 					"firstName": "Peter",
@@ -39,6 +40,7 @@ final class DynamicJSONTests: XCTestCase {
 				"firstName": "Daniel",
 				"lastName": "Illescas",
 				"someNumber": 22.3,
+				"values": [1.2, 5.3, 78323.23],
 				"parent": [
 					"fullName": [
 						"firstName": "Peter",
@@ -69,6 +71,33 @@ final class DynamicJSONTests: XCTestCase {
 		XCTAssertNil(json.fullName.double)
 		XCTAssertNil(json.fullName.array)
 		XCTAssertNil(json.fullName.bool)
+		
+		XCTAssertEqual(
+			json.fullName.values.array?.compactMap { $0 as? Double },
+			json.fullName.values.array(of: Double.self)
+		)
+		XCTAssertEqual(
+			json.fullName.values.array?.compactMap { $0 as? Double },
+			[1.2, 5.3, 78323.23]
+		)
+		
+		let arrayJson: Json = json.fullName.values
+		XCTAssertNotNil(arrayJson.array)
+		XCTAssertNil(arrayJson.double)
+		XCTAssertNil(arrayJson.dictionary)
+		XCTAssertNil(arrayJson.nsdictionary)
+		XCTAssertNil(arrayJson.string)
+		XCTAssertNil(arrayJson.int)
+		XCTAssertNil(arrayJson.bool)
+		
+		let arrayValue: Json = json.fullName.values[1]
+		XCTAssertNotNil(arrayValue.double)
+		XCTAssertNil(arrayValue.array)
+		XCTAssertNil(arrayValue.dictionary)
+		XCTAssertNil(arrayValue.nsdictionary)
+		XCTAssertNil(arrayValue.string)
+		XCTAssertNil(arrayValue.int)
+		XCTAssertNil(arrayValue.bool)
 		
 		let someValue: Json = json.fullName.parent.fullName.someValue
 		XCTAssertNotNil(someValue.double)
@@ -129,6 +158,26 @@ final class DynamicJSONTests: XCTestCase {
 		)
 		
 		//
+		
+		let anyValues: [Any] = ["cosa", 32.2, "something"]
+		json.fullName.values = anyValues
+		
+		XCTAssertEqual(
+			json.fullName.values.array?.compactMap { $0 as? AnyHashable },
+			["cosa", 32.2, "something"]
+		)
+		XCTAssertNotEqual(
+			json.fullName.values.array?.compactMap { $0 as? AnyHashable },
+			["cosa", 32.21, "something"]
+		)
+		XCTAssertEqual(
+			json.fullName.values.array?.compactMap { $0 as? AnyHashable },
+			json.fullName.values.array(of: AnyHashable.self)
+		)
+		XCTAssertNotEqual(
+			json.fullName.values.array?.compactMap { $0 as? AnyHashable },
+			json.fullName.values.array(of: String.self)
+		)
 		
 		json.fullName.parent = "pepe"
 		jsonCopy.fullName.parent = (json.fullName.parent.string ?? "") + "_"
