@@ -11,7 +11,7 @@ import class Foundation.JSONSerialization
 import class Foundation.JSONEncoder
 import class Foundation.JSONDecoder
 import func Foundation.NSSelectorFromString
-import func os.log.os_log
+import func os.os_log
 import struct os.log.OSLogType
 
 @dynamicMemberLookup
