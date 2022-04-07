@@ -14,10 +14,17 @@ import func Foundation.NSSelectorFromString
 import func os.os_log
 import struct os.log.OSLogType
 
+fileprivate class Box<T> {
+	var value: T
+	init(value: T) {
+		self.value = value
+	}
+}
+
 @dynamicMemberLookup
-public final class Json {
+public struct Json {
 	
-	private let parent: (String, Json)?
+	private let parent: (String, Box<Json>)?
 	private var jsonObject: Any
 	
 	public static var null: Json {
@@ -26,16 +33,16 @@ public final class Json {
 	
 	// MARK: - Initializers
 	
-	public convenience init(data: Data) {
+	public init(data: Data) {
 		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
 		self.init(value: decodedJson, parent: nil)
 	}
 	
-	public convenience init<T>(_ object: T?) {
+	public init<T>(_ object: T?) {
 		self.init(object, parent: nil)
 	}
 	
-	public convenience init(raw rawJson: String) {
+	public init(raw rawJson: String) {
 		if let jsonData = rawJson.data(using: .utf8) {
 			self.init(data: jsonData)
 		} else {
@@ -50,12 +57,12 @@ public final class Json {
 		self.parent = nil
 	}
 	
-	private convenience init(data: Data, parent: (String, Json)?) {
+	private init(data: Data, parent: (String, Box<Json>)?) {
 		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
 		self.init(value: decodedJson, parent: parent)
 	}
 	
-	private init(value: Any?, parent: (String, Json)?) {
+	private init(value: Any?, parent: (String, Box<Json>)?) {
 		if let validValue = value {
 			self.jsonObject = validValue
 		} else {
@@ -64,9 +71,9 @@ public final class Json {
 		self.parent = parent
 	}
 	
-	private convenience init<T>(_ object: T?, parent: (String, Json)?) {
+	private init<T>(_ object: T?, parent: (String, Box<Json>)?) {
 		if object is Json, let json = object as? Json {
-			self.init(json.jsonCopy().jsonObject)
+			self.init(json)
 		} else if object is Data, let data = object as? Data {
 			self.init(data: data)
 		} else if let object = object, JSONSerialization.isValidJSONObject(object) {
@@ -87,11 +94,11 @@ public final class Json {
 						os_log("Json - Member not found for key \"%@\"", type: .error, member)
 					}
 				}
-				return Json(value, parent: (member, self))
+				return Json(value, parent: (member, Box(value: self)))
 			}
 			
 			let value: [String: Any]? = nil
-			return Json(value, parent: (member, self))
+			return Json(value, parent: (member, Box(value: self)))
 		}
 		set(newValue) {
 			if var dictionary = self.jsonObject as? [String: Any] {
@@ -101,7 +108,7 @@ public final class Json {
 				self.jsonObject = [member: newValue.jsonObject]
 			}
 			if let (key, json) = self.parent {
-				json[dynamicMember: key] = Json(self.jsonObject)
+				json.value[dynamicMember: key] = Json(self.jsonObject)
 			}
 			
 		}
@@ -136,7 +143,7 @@ public final class Json {
 				self.jsonObject = jsonArray
 			}
 			if let (key, json) = self.parent {
-				json[dynamicMember: key] = Json(self.jsonObject)
+				json.value[dynamicMember: key] = Json(self.jsonObject)
 			}
 		}
 	}
@@ -211,7 +218,7 @@ public final class Json {
 		return self.jsonObject
 	}
 	public var json: Json {
-		return self.jsonCopy()
+		return self
 	}
 	
 	//
@@ -224,21 +231,6 @@ public final class Json {
 extension Json: CustomStringConvertible {
 	public var description: String {
 		return String(describing: self.jsonObject)
-	}
-}
-
-extension Json: NSCopying {
-	
-	public func copy(with zone: NSZone? = nil) -> Any {
-		jsonCopy()
-	}
-	
-	public func jsonCopy() -> Json {
-		if let copyableObject = self.jsonObject as? NSCopying {
-			return Json(value: copyableObject.copy(), parent: nil)
-		} else {
-			return Json(value: self.jsonObject, parent: nil)
-		}
 	}
 }
 

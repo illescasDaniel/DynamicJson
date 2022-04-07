@@ -23,19 +23,19 @@ final class DynamicJSONTests: XCTestCase {
 	"""
 	
 	func testJSONString() {
-		let json = Json(raw: jsonString1)
+		var json = Json(raw: jsonString1)
 		jsonValueTypeChecks(json)
-		jsonMutability(json: json)
+		jsonMutability(json: &json)
 	}
 	
 	func testJSONData() {
-		let json = Json(data: Data(jsonString1.utf8))
+		var json = Json(data: Data(jsonString1.utf8))
 		jsonValueTypeChecks(json)
-		jsonMutability(json: json)
+		jsonMutability(json: &json)
 	}
 	
 	func testJSONObject() {
-		let json = Json([
+		var json = Json([
 			"fullName": [
 				"firstName": "Daniel",
 				"lastName": "Illescas",
@@ -52,7 +52,7 @@ final class DynamicJSONTests: XCTestCase {
 			"age": 22
 		])
 		jsonValueTypeChecks(json)
-		jsonMutability(json: json)
+		jsonMutability(json: &json)
 	}
 	
 	static var allTests = [
@@ -144,7 +144,7 @@ final class DynamicJSONTests: XCTestCase {
 		let randomStringFastTraversal: NSObject? = json["asdkjhafsd.asdjhlfasdf.kh.j.j.j.asdf"]
 		XCTAssertNil(randomStringFastTraversal)
 		
-		let myJson = Json(["something": ["age": 25]])
+		var myJson = Json(["something": ["age": 25]])
 		myJson.something.name = "Daniel"
 		XCTAssertEqual(
 			myJson[\.something.age].int,
@@ -161,12 +161,12 @@ final class DynamicJSONTests: XCTestCase {
 		)
 	}
 	
-	private func jsonMutability(json: Json) {
+	private func jsonMutability(json: inout Json) {
 		
-		let jsonCopy: Json = json.jsonCopy()
-		let jsonCopy2: Json = json.copy() as! Json
+		var jsonCopy: Json = json
+		var jsonCopy2: Json = json
 		json.fullName.parent.fullName.someValue = 0.1
-		
+
 		XCTAssertEqual(
 			json.fullName.parent.fullName.someValue.double,
 			0.1
@@ -179,12 +179,12 @@ final class DynamicJSONTests: XCTestCase {
 			json.fullName.parent.fullName.someValue.double,
 			jsonCopy2.fullName.parent.fullName.someValue.double
 		)
-		
+
 		//
-		
+
 		let anyValues: [Any] = ["cosa", 32.2, "something"]
 		json.fullName.values = anyValues
-		
+
 		XCTAssertEqual(
 			json.fullName.values.array?.compactMap { $0 as? AnyHashable },
 			["cosa", 32.2, "something"]
@@ -201,10 +201,10 @@ final class DynamicJSONTests: XCTestCase {
 			json.fullName.values.array?.compactMap { $0 as? AnyHashable },
 			json.fullName.values.array(of: String.self) as [AnyHashable]?
 		)
-		
+
 		json.fullName.parent = "pepe"
 		jsonCopy.fullName.parent = (json.fullName.parent.string ?? "") + "_"
-		
+
 		XCTAssertEqual(
 			json.fullName.parent.string,
 			"pepe"
@@ -213,13 +213,13 @@ final class DynamicJSONTests: XCTestCase {
 			jsonCopy.fullName.parent.string,
 			"pepe_"
 		)
-		
+
 		jsonCopy2.fullName.parent = jsonCopy.fullName.parent.json
 		XCTAssertEqual(
 			jsonCopy2.fullName.parent.string,
 			"pepe_"
 		)
-		
+
 		json.fullName.somethingNew = "22"
 		XCTAssertEqual(
 			json.fullName.somethingNew.string,
@@ -229,7 +229,7 @@ final class DynamicJSONTests: XCTestCase {
 			json.fullName.somethingNew.int,
 			22
 		)
-		
+
 		json.fullName.anotherJson = jsonCopy.json
 		XCTAssertEqual(
 			json.fullName.anotherJson.fullName.parent.string,
