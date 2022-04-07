@@ -45,7 +45,7 @@ final class DynamicJSONTests: XCTestCase {
 		"""
 		let json = Json(rawJsonString: specialJson)
 		XCTAssertEqual(
-			json[\.string].number.double,
+			json[\.string].number.int,
 			25
 		)
 		XCTAssertEqual(
