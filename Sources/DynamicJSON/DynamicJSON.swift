@@ -17,7 +17,7 @@ import struct os.log.OSLogType
 @dynamicMemberLookup
 public final class Json {
 	
-	private var parent: (String, Json)?
+	private let parent: (String, Json)?
 	private var jsonObject: Any
 	
 	public static var null: Json {
@@ -28,7 +28,7 @@ public final class Json {
 	
 	public convenience init(data: Data) {
 		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
-		self.init(value: decodedJson)
+		self.init(value: decodedJson, parent: nil)
 	}
 	
 	public convenience init<T>(_ object: T?) {
@@ -39,7 +39,7 @@ public final class Json {
 		if let jsonData = rawJson.data(using: .utf8) {
 			self.init(data: jsonData)
 		} else {
-			self.init(value: rawJson)
+			self.init(value: rawJson, parent: nil)
 		}
 	}
 	
@@ -47,14 +47,21 @@ public final class Json {
 	
 	private init() {
 		self.jsonObject = NSDictionary()
+		self.parent = nil
 	}
 	
-	private init(value: Any?) {
+	private convenience init(data: Data, parent: (String, Json)?) {
+		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
+		self.init(value: decodedJson, parent: parent)
+	}
+	
+	private init(value: Any?, parent: (String, Json)?) {
 		if let validValue = value {
 			self.jsonObject = validValue
 		} else {
 			self.jsonObject = NSDictionary()
 		}
+		self.parent = parent
 	}
 	
 	private convenience init<T>(_ object: T?, parent: (String, Json)?) {
@@ -63,13 +70,11 @@ public final class Json {
 		} else if object is Data, let data = object as? Data {
 			self.init(data: data)
 		} else if let object = object, JSONSerialization.isValidJSONObject(object) {
-			self.init(value: object)
+			self.init(value: object, parent: parent)
 		} else { // mmmmm
-			self.init(value: object)
+			self.init(value: object, parent: parent)
 		}
-		self.parent = parent
 	}
-	
 	
 	// MARK: - Subscripts
 	
@@ -230,9 +235,9 @@ extension Json: NSCopying {
 	
 	public func jsonCopy() -> Json {
 		if let copyableObject = self.jsonObject as? NSCopying {
-			return Json(value: copyableObject.copy())
+			return Json(value: copyableObject.copy(), parent: nil)
 		} else {
-			return Json(value: self.jsonObject)
+			return Json(value: self.jsonObject, parent: nil)
 		}
 	}
 }

@@ -143,6 +143,22 @@ final class DynamicJSONTests: XCTestCase {
 		
 		let randomStringFastTraversal: NSObject? = json["asdkjhafsd.asdjhlfasdf.kh.j.j.j.asdf"]
 		XCTAssertNil(randomStringFastTraversal)
+		
+		let myJson = Json(["something": ["age": 25]])
+		myJson.something.name = "Daniel"
+		XCTAssertEqual(
+			myJson[\.something.age].int,
+			25
+		)
+		XCTAssertEqual(
+			myJson[\.something.name].string,
+			"Daniel"
+		)
+		let name1: String? = myJson["something.name"]
+		XCTAssertEqual(
+			myJson[\.something.name].string,
+			name1
+		)
 	}
 	
 	private func jsonMutability(json: Json) {
