@@ -27,33 +27,31 @@ public struct Json {
 	private let parent: (String, Box<Json>)?
 	private var jsonObject: Any
 	
-	public static var null: Json {
-		return Json()
-	}
+	public static var null: Json { Json() }
 	
 	// MARK: - Initializers
 	
 	public init(data: Data) {
-		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
-		self.init(value: decodedJson, parent: nil)
+		self.init(data: data, parent: nil)
 	}
 	
-	public init<T>(_ object: T?) {
-		self.init(object, parent: nil)
-	}
-	
-	public init(raw rawJson: String) {
-		if let jsonData = rawJson.data(using: .utf8) {
-			self.init(data: jsonData)
+	public init(dictionary: [String: Any]) {
+		if dictionary.isEmpty {
+			self = .null
 		} else {
-			self.init(value: rawJson, parent: nil)
+			self.init(dictionary, parent: nil)
 		}
+	}
+	
+	public init(rawString rawJsonString: String) {
+		let jsonData = Data(rawJsonString.utf8)
+		self.init(data: jsonData, parent: nil)
 	}
 	
 	// MARK: Private initializers
 	
 	private init() {
-		self.jsonObject = NSDictionary()
+		self.jsonObject = [String: Any]()
 		self.parent = nil
 	}
 	
@@ -66,16 +64,16 @@ public struct Json {
 		if let validValue = value {
 			self.jsonObject = validValue
 		} else {
-			self.jsonObject = NSDictionary()
+			self.jsonObject = [String: Any]()
 		}
 		self.parent = parent
 	}
 	
 	private init<T>(_ object: T?, parent: (String, Box<Json>)?) {
 		if object is Json, let json = object as? Json {
-			self.init(json)
+			self.init(value: json.jsonObject, parent: parent)
 		} else if object is Data, let data = object as? Data {
-			self.init(data: data)
+			self.init(data: data, parent: parent)
 		} else if let object = object, JSONSerialization.isValidJSONObject(object) {
 			self.init(value: object, parent: parent)
 		} else { // mmmmm
@@ -108,7 +106,7 @@ public struct Json {
 				self.jsonObject = [member: newValue.jsonObject]
 			}
 			if let (key, json) = self.parent {
-				json.value[dynamicMember: key] = Json(self.jsonObject)
+				json.value[dynamicMember: key] = Json(self.jsonObject, parent: nil)
 			}
 			
 		}
@@ -121,7 +119,7 @@ public struct Json {
 			if newValue is Json {
 				self[dynamicMember: member] = newValue
 			} else {
-				self[dynamicMember: member] = Json(newValue)
+				self[dynamicMember: member] = Json(newValue, parent: nil)
 			}
 		}
 	}
@@ -130,7 +128,7 @@ public struct Json {
 		get {
 			if let jsonArray = self.jsonObject as? [Any] {
 				let value = jsonArray[index]
-				return Json(value)
+				return Json(value, parent: nil)
 			}
 			if #available(OSX 10.12, iOS 10.0, watchOS 3.0, tvOS 10.0, *) {
 				os_log("Json - Value \"%@\" is not an array", type: .error, "\(self.jsonObject)")
@@ -143,7 +141,7 @@ public struct Json {
 				self.jsonObject = jsonArray
 			}
 			if let (key, json) = self.parent {
-				json.value[dynamicMember: key] = Json(self.jsonObject)
+				json.value[dynamicMember: key] = Json(self.jsonObject, parent: nil)
 			}
 		}
 	}
@@ -152,7 +150,7 @@ public struct Json {
 		get {
 			return self[index] as Json
 		} set {
-			self[index] = Json(newValue)
+			self[index] = Json(newValue, parent: nil)
 		}
 	}
 	
@@ -160,7 +158,7 @@ public struct Json {
 		let member = MemberStub()
 		let key = member[keyPath: keyPath].key
 		if let value: Any? = self[key] {
-			return Json(value)
+			return Json(value, parent: nil)
 		}
 		return Json.null
 	}

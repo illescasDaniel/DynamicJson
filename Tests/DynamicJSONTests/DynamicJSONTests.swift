@@ -21,21 +21,25 @@ final class DynamicJSONTests: XCTestCase {
 		"age": 22
 	}
 	"""
-	
+
 	func testJSONString() {
-		var json = Json(raw: jsonString1)
+		let json = Json(rawString: jsonString1)
 		jsonValueTypeChecks(json)
-		jsonMutability(json: &json)
+		
+		var json1 = Json(rawString: jsonString1)
+		jsonMutability(json: &json1)
 	}
 	
 	func testJSONData() {
-		var json = Json(data: Data(jsonString1.utf8))
+		let json = Json(data: Data(jsonString1.utf8))
 		jsonValueTypeChecks(json)
-		jsonMutability(json: &json)
+		
+		var json1 = Json(data: Data(jsonString1.utf8))
+		jsonMutability(json: &json1)
 	}
 	
 	func testJSONObject() {
-		var json = Json([
+		let json = Json(dictionary: [
 			"fullName": [
 				"firstName": "Daniel",
 				"lastName": "Illescas",
@@ -52,7 +56,24 @@ final class DynamicJSONTests: XCTestCase {
 			"age": 22
 		])
 		jsonValueTypeChecks(json)
-		jsonMutability(json: &json)
+		
+		var json1 = Json(dictionary: [
+			"fullName": [
+				"firstName": "Daniel",
+				"lastName": "Illescas",
+				"someNumber": 22.3,
+				"values": [1.2, 5.3, 78323.23],
+				"parent": [
+					"fullName": [
+						"firstName": "Peter",
+						"lastName": "Illescas",
+						"someValue": 223.123
+					]
+				]
+			],
+			"age": 22
+		])
+		jsonMutability(json: &json1)
 	}
 	
 	static var allTests = [
@@ -144,7 +165,7 @@ final class DynamicJSONTests: XCTestCase {
 		let randomStringFastTraversal: NSObject? = json["asdkjhafsd.asdjhlfasdf.kh.j.j.j.asdf"]
 		XCTAssertNil(randomStringFastTraversal)
 		
-		var myJson = Json(["something": ["age": 25]])
+		var myJson = Json(dictionary: ["something": ["age": 25]])
 		myJson.something.name = "Daniel"
 		XCTAssertEqual(
 			myJson[\.something.age].int,
