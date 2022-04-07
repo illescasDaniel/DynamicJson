@@ -26,35 +26,13 @@ public final class Json {
 	
 	// MARK: - Initializers
 	
-	fileprivate init(value: Any? = NSDictionary()) {
-		self.jsonObject = value ?? NSDictionary()
-	}
-	
 	public convenience init(data: Data) {
 		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
 		self.init(value: decodedJson)
 	}
 	
-	public convenience init<T>(_ object: T?, parent: (String, Json)? = nil) {
-		if object is Json, let json = object as? Json {
-			self.init(json.jsonObject)
-		} else if object is Data, let data = object as? Data {
-			self.init(data: data)
-		} else if let object = object, JSONSerialization.isValidJSONObject(object),
-			let jsonData = try? JSONSerialization.data(withJSONObject: object) {
-			self.init(data: jsonData)
-		} else {
-			self.init(value: object)
-		}
-		self.parent = parent
-	}
-	
-	public convenience init<T: Encodable>(_ encodableObject: T) {
-		if let encodedObject = try? JSONEncoder().encode(encodableObject) {
-			self.init(data: encodedObject)
-		} else {
-			self.init()
-		}
+	public convenience init<T>(_ object: T?) {
+		self.init(object, parent: nil)
 	}
 	
 	public convenience init(raw rawJson: String) {
@@ -64,6 +42,34 @@ public final class Json {
 			self.init(value: rawJson)
 		}
 	}
+	
+	// MARK: Private initializers
+	
+	private init() {
+		self.jsonObject = NSDictionary()
+	}
+	
+	private init(value: Any?) {
+		if let validValue = value {
+			self.jsonObject = validValue
+		} else {
+			self.jsonObject = NSDictionary()
+		}
+	}
+	
+	private convenience init<T>(_ object: T?, parent: (String, Json)?) {
+		if object is Json, let json = object as? Json {
+			self.init(json.jsonCopy().jsonObject)
+		} else if object is Data, let data = object as? Data {
+			self.init(data: data)
+		} else if let object = object, JSONSerialization.isValidJSONObject(object) {
+			self.init(value: object)
+		} else { // mmmmm
+			self.init(value: object)
+		}
+		self.parent = parent
+	}
+	
 	
 	// MARK: - Subscripts
 	
@@ -79,9 +85,10 @@ public final class Json {
 				return Json(value, parent: (member, self))
 			}
 			
-			return Json(self.jsonObject, parent: (member, self))
+			let value: [String: Any]? = nil
+			return Json(value, parent: (member, self))
 		}
-		set {
+		set(newValue) {
 			if var dictionary = self.jsonObject as? [String: Any] {
 				dictionary[member] = newValue.jsonObject
 				self.jsonObject = dictionary
@@ -98,7 +105,7 @@ public final class Json {
 	public subscript(dynamicMember member: String) -> Any {
 		get {
 			return self[dynamicMember: member] as Json
-		} set {
+		} set(newValue) {
 			if newValue is Json {
 				self[dynamicMember: member] = newValue
 			} else {
@@ -254,25 +261,25 @@ public extension Json {
 		}
 	}
 }
-
-public protocol JsonConvertible {
-	var json: Json { get }
-}
-public extension JsonConvertible {
-	var json: Json {
-		return Json(self)
-	}
-}
-
-extension String: JsonConvertible {}
-extension Int: JsonConvertible {}
-extension Bool: JsonConvertible {}
-extension Double: JsonConvertible {}
-extension Array: JsonConvertible {}
-extension Dictionary: JsonConvertible {}
-
-public extension Encodable {
-	var inJson: Json {
-		return Json(self)
-	}
-}
+//
+//public protocol JsonConvertible {
+//	var json: Json { get }
+//}
+//public extension JsonConvertible {
+//	var json: Json {
+//		return Json(self)
+//	}
+//}
+//
+//extension String: JsonConvertible {}
+//extension Int: JsonConvertible {}
+//extension Bool: JsonConvertible {}
+//extension Double: JsonConvertible {}
+//extension Array: JsonConvertible {}
+//extension Dictionary: JsonConvertible {}
+//
+//public extension Encodable {
+//	var inJson: Json {
+//		return Json(self)
+//	}
+//}

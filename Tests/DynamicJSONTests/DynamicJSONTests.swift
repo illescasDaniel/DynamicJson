@@ -55,6 +55,13 @@ final class DynamicJSONTests: XCTestCase {
 		jsonMutability(json: json)
 	}
 	
+	static var allTests = [
+		("testJSONString", testJSONString),
+		("testJSONData", testJSONData),
+	]
+	
+	// private
+	
 	private func jsonValueTypeChecks(_ json: Json) {
 		XCTAssertNotNil(json.dictionary)
 		XCTAssertNotNil(json.nsdictionary)
@@ -176,7 +183,7 @@ final class DynamicJSONTests: XCTestCase {
 		)
 		XCTAssertNotEqual(
 			json.fullName.values.array?.compactMap { $0 as? AnyHashable },
-			json.fullName.values.array(of: String.self)
+			json.fullName.values.array(of: String.self) as [AnyHashable]?
 		)
 		
 		json.fullName.parent = "pepe"
@@ -213,9 +220,4 @@ final class DynamicJSONTests: XCTestCase {
 			"pepe_"
 		)
 	}
-	
-	static var allTests = [
-		("testJSONString", testJSONString),
-		("testJSONData", testJSONData),
-	]
 }
