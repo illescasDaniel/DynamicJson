@@ -21,12 +21,56 @@ final class DynamicJSONTests: XCTestCase {
 		"age": 22
 	}
 	"""
-
+	
+	func testNull() {
+		XCTAssertTrue(Json.null.isJsonEmpty)
+		XCTAssertTrue(Json(dictionary: [:]).isJsonEmpty)
+		XCTAssertTrue(Json(rawJsonString: "{}").isJsonEmpty)
+		XCTAssertTrue(Json(rawJsonString: "").isJsonEmpty)
+	}
+	
+	func testSpecialNames() {
+		let specialJson = """
+		{
+			"string": {
+				"number": 25,
+				"int": "something",
+				"dictionary": [1.2, 5.3, 78323.23],
+				"what are you doing?!": {
+					"name": "Daniel"
+				}
+			},
+			"int": 22
+		}
+		"""
+		let json = Json(rawJsonString: specialJson)
+		XCTAssertEqual(
+			json[\.string].number.double,
+			25
+		)
+		XCTAssertEqual(
+			json["string.int"].string,
+			"something"
+		)
+		XCTAssertEqual(
+			json["int"].int,
+			22
+		)
+		XCTAssertEqual(
+			json["string.what are you doing?!.name"].string,
+			"Daniel"
+		)
+		XCTAssertEqual(
+			json["string.dictionary"].array(of: Double.self),
+			[1.2, 5.3, 78323.23]
+		)
+	}
+	
 	func testJSONString() {
-		let json = Json(rawString: jsonString1)
+		let json = Json(rawJsonString: jsonString1)
 		jsonValueTypeChecks(json)
 		
-		var json1 = Json(rawString: jsonString1)
+		var json1 = Json(rawJsonString: jsonString1)
 		jsonMutability(json: &json1)
 	}
 	
@@ -148,7 +192,7 @@ final class DynamicJSONTests: XCTestCase {
 		let fullNameFastTraversal: Any? = json["fullName"]
 		XCTAssertNotNil(fullNameFastTraversal)
 		
-		let someValueFastTraversal: Double? = json["fullName.parent.fullName.someValue"]
+		let someValueFastTraversal: Double? = json["fullName.parent.fullName.someValue"].double
 		XCTAssertNotNil(someValueFastTraversal)
 		
 		let randomStringJSONFastTraversal: Json = json[\.asdkjhafsd.asdjhlfasdf.kh.j.j.j.asdf]
@@ -162,8 +206,8 @@ final class DynamicJSONTests: XCTestCase {
 		XCTAssertNil(randomStringJSONFastTraversal.array)
 		XCTAssertNil(randomStringJSONFastTraversal.bool)
 		
-		let randomStringFastTraversal: NSObject? = json["asdkjhafsd.asdjhlfasdf.kh.j.j.j.asdf"]
-		XCTAssertNil(randomStringFastTraversal)
+		let randomStringFastTraversal = json["asdkjhafsd.asdjhlfasdf.kh.j.j.j.asdf"]
+		XCTAssertTrue(randomStringFastTraversal.isJsonEmpty)
 		
 		var myJson = Json(dictionary: ["something": ["age": 25]])
 		myJson.something.name = "Daniel"
@@ -175,7 +219,7 @@ final class DynamicJSONTests: XCTestCase {
 			myJson[\.something.name].string,
 			"Daniel"
 		)
-		let name1: String? = myJson["something.name"]
+		let name1: String? = myJson["something.name"].string
 		XCTAssertEqual(
 			myJson[\.something.name].string,
 			name1

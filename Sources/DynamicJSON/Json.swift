@@ -43,25 +43,20 @@ public struct Json {
 		}
 	}
 	
-	public init(rawString rawJsonString: String) {
+	public init(rawJsonString: String) {
 		let jsonData = Data(rawJsonString.utf8)
 		self.init(data: jsonData, parent: nil)
 	}
 	
 	// MARK: Private initializers
 	
-	private init() {
-		self.jsonObject = [String: Any]()
-		self.parent = nil
+	private init(jsonObject: [String: Any], parent: (String, Box<Json>)?) {
+		self.jsonObject = jsonObject
+		self.parent = parent
 	}
 	
-	private init(data: Data, parent: (String, Box<Json>)?) {
-		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
-		self.init(value: decodedJson, parent: parent)
-	}
-	
-	private init(value: Any?, parent: (String, Box<Json>)?) {
-		if let validValue = value {
+	private init(anyJsonObject: Any?, parent: (String, Box<Json>)?) {
+		if let validValue = anyJsonObject {
 			self.jsonObject = validValue
 		} else {
 			self.jsonObject = [String: Any]()
@@ -69,15 +64,31 @@ public struct Json {
 		self.parent = parent
 	}
 	
+	private init() {
+		self.init(jsonObject: [:], parent: nil)
+	}
+	
+	private init(data: Data, parent: (String, Box<Json>)?) {
+		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
+		if let validDictionary = decodedJson as? [String: Any] {
+			self.init(jsonObject: validDictionary, parent: parent)
+		} else {
+			self.init(anyJsonObject: decodedJson, parent: parent)
+		}
+	}
+	
 	private init<T>(_ object: T?, parent: (String, Box<Json>)?) {
 		if object is Json, let json = object as? Json {
-			self.init(value: json.jsonObject, parent: parent)
+			self.init(anyJsonObject: json.jsonObject, parent: parent)
 		} else if object is Data, let data = object as? Data {
 			self.init(data: data, parent: parent)
-		} else if let object = object, JSONSerialization.isValidJSONObject(object) {
-			self.init(value: object, parent: parent)
+		} else if let object = object,
+				JSONSerialization.isValidJSONObject(object),
+				let dictionary = object as? [String: Any]
+		{
+			self.init(jsonObject: dictionary, parent: parent)
 		} else { // mmmmm
-			self.init(value: object, parent: parent)
+			self.init(anyJsonObject: object, parent: parent)
 		}
 	}
 	
@@ -157,14 +168,12 @@ public struct Json {
 	public subscript(_ keyPath: KeyPath<Json.MemberStub, Json.MemberStub>) -> Json {
 		let member = MemberStub()
 		let key = member[keyPath: keyPath].key
-		if let value: Any? = self[key] {
-			return Json(value, parent: nil)
-		}
-		return Json.null
+		return self[key]
 	}
 	
-	public subscript<T>(_ keyPath: String) -> T? {
-		return self.nsdictionary?.value(forKeyPath: keyPath) as? T
+	public subscript(_ keyPath: String) -> Json {
+		let value = self.nsdictionary?.value(forKeyPath: keyPath)
+		return Json(value, parent: nil)
 	}
 	
 	// MARK: - Codable
@@ -202,9 +211,11 @@ public struct Json {
 		return self.jsonObject as? [Any]
 	}
 	func array<T>(of type: T.Type) -> [T]? {
-		let selfArray = self.array
-		let mappedArray = selfArray?.map { $0 as? T }
-		return mappedArray?.count == selfArray?.count ? mappedArray?.compactMap { $0 } : nil
+		guard let selfArray = self.array else {
+			return nil
+		}
+		let mappedArray = selfArray.map { $0 as? T }
+		return mappedArray.count == selfArray.count ? mappedArray.compactMap { $0 } : nil
 	}
 	public var dictionary: [String: Any]? {
 		return self.jsonObject as? [String: Any]
@@ -256,25 +267,3 @@ public extension Json {
 		}
 	}
 }
-//
-//public protocol JsonConvertible {
-//	var json: Json { get }
-//}
-//public extension JsonConvertible {
-//	var json: Json {
-//		return Json(self)
-//	}
-//}
-//
-//extension String: JsonConvertible {}
-//extension Int: JsonConvertible {}
-//extension Bool: JsonConvertible {}
-//extension Double: JsonConvertible {}
-//extension Array: JsonConvertible {}
-//extension Dictionary: JsonConvertible {}
-//
-//public extension Encodable {
-//	var inJson: Json {
-//		return Json(self)
-//	}
-//}
