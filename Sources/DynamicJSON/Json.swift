@@ -1,16 +1,13 @@
-// Logger.swift
+// Json.swift
 // by Daniel Illescas Romero
 // Github: @illescasDaniel
 // License: MIT
 
 import struct Foundation.Data
-import protocol Foundation.NSCopying
-import struct Foundation.NSZone
 import class Foundation.NSDictionary
 import class Foundation.JSONSerialization
 import class Foundation.JSONEncoder
 import class Foundation.JSONDecoder
-import func Foundation.NSSelectorFromString
 import func os.os_log
 import struct os.log.OSLogType
 
