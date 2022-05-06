@@ -4,6 +4,7 @@ import XCTest
 public func allTests() -> [XCTestCaseEntry] {
     return [
         testCase(DynamicJSONTests.allTests),
+		testCase(JSONValueTests.allTests)
     ]
 }
 #endif

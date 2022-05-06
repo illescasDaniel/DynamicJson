@@ -141,8 +141,11 @@ final class DynamicJSONTests: XCTestCase {
 	}
 	
 	static var allTests = [
+		("testNull", testNull),
+		("testSpecialNames", testSpecialNames),
 		("testJSONString", testJSONString),
 		("testJSONData", testJSONData),
+		("testJSONObject", testJSONObject)
 	]
 	
 	// private
