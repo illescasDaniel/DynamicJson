@@ -120,6 +120,7 @@ public struct Json {
 		}
 	}
 	
+	// used to set any value
 	public subscript(dynamicMember member: String) -> Any {
 		get {
 			return self[dynamicMember: member] as Json

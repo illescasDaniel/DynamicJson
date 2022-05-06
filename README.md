@@ -17,7 +17,7 @@ let json = """
 """
 
 // Get a json from a raw string, from data or from an object (like a dictionary)
-let danielJson = Json(raw: json)
+let danielJson = Json(rawJsonString: json)
 
 // Get stuff
 print(danielJson.name.string ?? "")
@@ -58,7 +58,7 @@ let otherJson = """
   "age": 22
 }
 """
-let me = Json(raw: otherJson)
+let me = Json(rawJsonString: otherJson)
 print(me[\.fullName.parent.fullName.firstName].string ?? "nope")
 // or
 print(me["fullName.parent.fullName.firstName"] ?? "nope")

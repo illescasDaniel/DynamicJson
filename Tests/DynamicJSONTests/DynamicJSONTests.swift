@@ -57,6 +57,26 @@ final class DynamicJSONTests: XCTestCase {
 			22
 		)
 		XCTAssertEqual(
+			json["sadjfaj.f.f.f.d.d.f.fskdhfasd"].int,
+			nil
+		)
+		XCTAssertEqual(
+			json["^%&$%^#^.."].int,
+			nil
+		)
+		XCTAssertEqual(
+			json[""].int,
+			nil
+		)
+		XCTAssertEqual(
+			json["......"].int,
+			nil
+		)
+		XCTAssertEqual(
+			json[\.asdfasd.asdf.fd.fdf.dfd].int,
+			nil
+		)
+		XCTAssertEqual(
 			json["string.what are you doing?!.name"].string,
 			"Daniel"
 		)
