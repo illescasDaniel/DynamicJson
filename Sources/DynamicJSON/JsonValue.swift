@@ -126,13 +126,8 @@ public struct JsonValue {
 		case null
 	}
 	
-	//	let value: Any?
 	public let value: InternalValue
-	
-	//	init(_ value: Any?) {
-	//		self.value = value
-	//	}
-	
+
 	public init?(any: Any?) {
 		switch any {
 		case let value as Int: self.init(value)
@@ -233,7 +228,6 @@ extension JsonValue: ExpressibleByArrayLiteral {
 	
 	public init(arrayLiteral elements: ArrayLiteralElement...) {
 		self.init(elements)
-		//		self.value = elements as [ArrayLiteralElement]
 	}
 }
 
@@ -242,7 +236,6 @@ extension JsonValue: ExpressibleByDictionaryLiteral {
 	public typealias Value = JsonValue
 	
 	public init(dictionaryLiteral elements: (Key, Value)...) {
-		//		self.value = Dictionary.init(elements, uniquingKeysWith: { first, last in last })
 		self.init(Dictionary.init(elements, uniquingKeysWith: { first, last in last }))
 	}
 }

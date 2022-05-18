@@ -117,13 +117,6 @@ public struct ImmutableJson {
 	}
 }
 
-extension ImmutableJson: ExpressibleByStringLiteral {
-	public typealias StringLiteralType = String
-	public init(stringLiteral value: StringLiteralType) {
-		self.init(rawJsonString: value)
-	}
-}
-
 extension ImmutableJson: ExpressibleByArrayLiteral {
 	public typealias ArrayLiteralElement = JsonValue
 	
@@ -147,7 +140,8 @@ extension ImmutableJson: CustomStringConvertible {
 	}
 }
 
-extension ImmutableJson {
+extension ImmutableJson: Equatable {
+	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.jsonValue == rhs.jsonValue }
 	public static func == (lhs: Self, rhs: ()?) -> Bool { lhs.jsonValue.value.any == nil }
 	public static func == (lhs: Self, rhs: Int) -> Bool { lhs.jsonValue.value.integer == rhs }
 	public static func == (lhs: Self, rhs: Double) -> Bool { lhs.jsonValue.value.double == rhs }
@@ -158,12 +152,14 @@ extension ImmutableJson {
 }
 
 extension ImmutableJson {
+	
 	public static func < (lhs: ImmutableJson, rhs: Int) -> Bool {
 		if case .integer(let integer1) = lhs.jsonValue.value {
 			return integer1 < rhs
 		}
 		return false
 	}
+	
 	public static func > (lhs: ImmutableJson, rhs: Int) -> Bool {
 		if case .integer(let integer1) = lhs.jsonValue.value {
 			return integer1 > rhs

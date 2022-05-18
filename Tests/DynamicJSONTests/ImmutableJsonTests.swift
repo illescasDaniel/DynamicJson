@@ -17,7 +17,7 @@ final class ImmutableJsonTests: XCTestCase {
 	]
 	
 	func testJsonInit() throws {
-		let json: ImmutableJson = """
+		let json = ImmutableJson(rawJsonString: """
 {
 	"name": "Daniel",
 	"age": 25,
@@ -32,7 +32,7 @@ final class ImmutableJsonTests: XCTestCase {
 		}
 	]
 }
-"""
+""")
 		let nameJsonValue = json.name.getValue()
 		if case .string(let nameString) = nameJsonValue.value {
 			XCTAssertEqual(nameString, "Daniel")
@@ -135,8 +135,8 @@ final class ImmutableJsonTests: XCTestCase {
 			"age": 60
 		])
 		
-//		XCTAssertFalse(json[0] == json[1])
-//		XCTAssertTrue(json[1] == json[2])
+		XCTAssertFalse(json[0] == json[1])
+		XCTAssertTrue(json[1] == json[2])
 		XCTAssertTrue(json == [
 			[
 				"name": "Mom",
