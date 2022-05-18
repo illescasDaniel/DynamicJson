@@ -29,7 +29,7 @@ final class JSONValueTests: XCTestCase {
 		XCTAssertEqual(jsonValue4.boolean, false as Bool)
 		
 		let jsonValue5: JsonValue = nil
-		XCTAssertNil(jsonValue5.null)
+		XCTAssertTrue(jsonValue5.isNull)
 		
 		let jsonValue6: JsonValue = [1,2,3]
 		XCTAssertEqual(jsonValue6.anyArray as? [Int], [1,2,3] as [Int])
@@ -64,8 +64,8 @@ final class JSONValueTests: XCTestCase {
 		XCTAssertEqual(((values[3].array)?[0].integer), 1 as Int)
 		XCTAssertEqual(((values[3].array)?[1].double), 4.5 as Double)
 		XCTAssertEqual(((values[3].array)?[2].string), "aa" as String)
-		XCTAssertNil(values[4].null)
-		XCTAssertNil(values[5].null)
+		XCTAssertTrue(values[4].isNull)
+		XCTAssertTrue(values[5].isNull)
 		XCTAssertEqual((values[6].dictionary)?["key"]?.integer, 1 as Int )
 	}
 }

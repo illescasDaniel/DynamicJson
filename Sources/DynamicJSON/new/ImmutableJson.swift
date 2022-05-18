@@ -90,7 +90,7 @@ public struct ImmutableJson {
 		return String(data: data, encoding: .utf8)
 	}
 	
-	//
+	// utils
 	
 	public func getValue() -> JsonValue { jsonValue }
 	public func getInteger() -> Int? { jsonValue.value.integer }
@@ -102,12 +102,7 @@ public struct ImmutableJson {
 	public func getArrayValue<T>() -> [T?]? { jsonValue.value.arrayValue() }
 	public func getCompactArrayValue<T>() -> [T]? { jsonValue.value.compactArrayValue() }
 	public func getBoolean() -> Bool? { jsonValue.boolean }
-	public func getIsNull() -> Bool {
-		if case .null = jsonValue.value {
-			return true
-		}
-		return false
-	}
+	public func getIsNull() -> Bool { jsonValue.value.isNull }
 	public func getDictionary() -> [String: JsonValue]? { jsonValue.value.dictionary }
 	public func getNSDictionary() -> NSDictionary? { jsonValue.value.nsDictionary }
 	public func getCompactDictionaryAnyValue() -> [String: Any]? { jsonValue.value.anyCompactDictionary }
@@ -151,7 +146,42 @@ extension ImmutableJson: Equatable {
 	public static func == (lhs: Self, rhs: [String: JsonValue]) -> Bool { lhs.jsonValue.value.dictionary == rhs }
 }
 
-extension ImmutableJson {
+extension ImmutableJson: Comparable {
+	
+	public static func < (lhs: ImmutableJson, rhs: ImmutableJson) -> Bool {
+		switch rhs.jsonValue.value {
+		case .integer(let value): return lhs < value
+		case .double(let value): return lhs < value
+		case .string(let value): return lhs < value
+		case .boolean(let value): return lhs < value
+		case .array, .dictionary, .null: return false
+		}
+	}
+	
+	public static func > (lhs: ImmutableJson, rhs: ImmutableJson) -> Bool {
+		switch rhs.jsonValue.value {
+		case .integer(let value): return lhs > value
+		case .double(let value): return lhs > value
+		case .string(let value): return lhs > value
+		case .boolean(let value): return lhs > value
+		case .array, .dictionary, .null: return false
+		}
+	}
+	
+	public static func >= (lhs: ImmutableJson, rhs: ImmutableJson) -> Bool {
+		switch rhs.jsonValue.value {
+		case .integer(let value): return lhs >= value
+		case .double(let value): return lhs >= value
+		case .string(let value): return lhs >= value
+		case .boolean(let value): return lhs >= value
+		case .array, .dictionary: return false
+		case .null:
+			if case .null = lhs.jsonValue.value {
+				return true
+			}
+			return false
+		}
+	}
 	
 	public static func < (lhs: ImmutableJson, rhs: Int) -> Bool {
 		if case .integer(let integer1) = lhs.jsonValue.value {

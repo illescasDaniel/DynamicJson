@@ -41,6 +41,8 @@ final class ImmutableJsonTests: XCTestCase {
 		XCTAssertTrue(json.name == "Daniel")
 		
 		XCTAssertTrue(json.age == 25)
+		XCTAssertTrue(json.age == json.age)
+		XCTAssertTrue(json.parents[0]["age"] >= json.age)
 		XCTAssertTrue(json.parents[0]["age"] >= 40)
 		
 		XCTAssertTrue(
