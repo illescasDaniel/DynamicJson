@@ -1,9 +1,7 @@
-//
-//  File.swift
-//  
-//
-//  Created by Daniel Illescas Romero on 6/5/22.
-//
+// JsonValue.swift
+// by Daniel Illescas Romero
+// Github: @illescasDaniel
+// License: MIT
 
 import Foundation
 
