@@ -127,7 +127,7 @@ public struct SimpleJson {
 	public func getDouble() -> Double? { jsonValue.double }
 	public func getArray() -> [JsonValue]? { jsonValue.array }
 	public func getAnyArray() -> [Any?]? { jsonValue.anyArray }
-	public func getAnyCompactArray() -> [Any?]? { jsonValue.anyArray }
+	public func getAnyCompactArray() -> [Any]? { jsonValue.anyCompactArray }
 	public func getArrayValue<T>() -> [T?]? { jsonValue.arrayValue() }
 	public func getCompactArrayValue<T>() -> [T]? { jsonValue.compactArrayValue() }
 	public func getBoolean() -> Bool? { jsonValue.boolean }
