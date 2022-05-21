@@ -1,4 +1,4 @@
-// ImmutableJson.swift
+// SimpleJson.swift
 // by Daniel Illescas Romero
 // Github: @illescasDaniel
 // License: MIT
@@ -12,12 +12,12 @@ import func os.os_log
 import struct os.log.OSLogType
 
 @dynamicMemberLookup
-public struct ImmutableJson {
+public struct SimpleJson {
 	
 	private let jsonValue: JsonValue
 	
-	public static var null: ImmutableJson {
-		ImmutableJson(anyJsonObject: .null)
+	public static var null: SimpleJson {
+		SimpleJson(anyJsonObject: .null)
 	}
 	
 	// MARK: - Initializers
@@ -53,35 +53,35 @@ public struct ImmutableJson {
 	// MARK: - Subscripts
 	
 	// dynamicMemberLookup implementation (e.g.: myJson.name)
-	public subscript(dynamicMember member: String) -> ImmutableJson {
-		self.jsonValue.dictionary?[member].flatMap(ImmutableJson.init) ?? .null
+	public subscript(dynamicMember member: String) -> SimpleJson {
+		self.jsonValue.dictionary?[member].flatMap(SimpleJson.init) ?? .null
 	}
 	
 	// array subscript by index (e.g.: myJson[1])
-	public subscript(_ index: Int) -> ImmutableJson {
+	public subscript(_ index: Int) -> SimpleJson {
 		guard let array = self.jsonValue.array else { return .null }
-		return array.indices.contains(index) ? ImmutableJson(anyJsonObject: array[index]) : .null
+		return array.indices.contains(index) ? SimpleJson(anyJsonObject: array[index]) : .null
 	}
 	
-	// keypath subscript using strings (e.g.: myJson["address.street"]
-	public subscript(_ keyPath: String) -> ImmutableJson {
+	// keypath subscript using string paths (e.g.: myJson["address.street"]
+	public subscript(keyPath keyPath: String) -> SimpleJson {
 		
 		// nsdictionary implementation
 //		guard let dictionary = self.jsonValue.anyCompactDictionary else { return .null }
 //		let value = NSDictionary(dictionary: dictionary).value(forKeyPath: keyPath)
-//		return ImmutableJson(anyJsonObject: JsonValue(any: value) ?? JsonValue(.null))
+//		return SimpleJson(anyJsonObject: JsonValue(any: value) ?? JsonValue(.null))
 		
 		let keys = keyPath.split(separator: ".")
 		if keys.isEmpty {
-			return self[dictionaryKey: keyPath]
+			return self[keyPath]
 		}
 		var currentJson = self
 		for (index, key) in keys.enumerated() {
 			if index == keys.count - 1 {
 				let jsonValue = currentJson.jsonValue.dictionary?[String(key)] ?? .null
-				return ImmutableJson(anyJsonObject: jsonValue)
+				return SimpleJson(anyJsonObject: jsonValue)
 			} else {
-				let jsonChild: ImmutableJson = currentJson[dynamicMember: String(key)]
+				let jsonChild: SimpleJson = currentJson[dynamicMember: String(key)]
 				if jsonChild.jsonValue.dictionary != nil {
 					currentJson = jsonChild
 				}
@@ -90,17 +90,10 @@ public struct ImmutableJson {
 		fatalError()
 	}
 	
-	// keypath subscript using strings (e.g.: myJson["address.street"]
-	public subscript(dictionaryKey key: String) -> ImmutableJson {
+	// keypath subscript using string (e.g.: myJson["address"]
+	public subscript(_ key: String) -> SimpleJson {
 		guard let value = self.jsonValue.dictionary?[key] else { return .null }
-		return ImmutableJson(anyJsonObject: value)
-	}
-	
-	// keypath subscript using KeyPath (e.g.: myJson[\.address.street]
-	subscript(_ keyPath: KeyPath<ImmutableJson.MemberStub, ImmutableJson.MemberStub>) -> ImmutableJson {
-		let member = MemberStub()
-		let key = member[keyPath: keyPath].key
-		return self[key]
+		return SimpleJson(anyJsonObject: value)
 	}
 	
 	// MARK: - Codable
@@ -141,6 +134,8 @@ public struct ImmutableJson {
 	public func getIsNull() -> Bool { jsonValue.isNull }
 	public func getDictionary() -> [String: JsonValue]? { jsonValue.dictionary }
 	public func getNSDictionary() -> NSDictionary? { jsonValue.nsDictionary }
+	public func getNSDictionaryWithNull() -> NSDictionary? { jsonValue.nsDictionaryWithNull }
+	public func getAnyDictionaryValue() -> [String: Any?]? { jsonValue.anyDictionary }
 	public func getCompactDictionaryAnyValue() -> [String: Any]? { jsonValue.anyCompactDictionary }
 	
 	public var isJsonEmpty: Bool {
@@ -148,30 +143,13 @@ public struct ImmutableJson {
 	}
 }
 
-extension ImmutableJson: ExpressibleByArrayLiteral {
-	public typealias ArrayLiteralElement = JsonValue
-	
-	public init(arrayLiteral elements: ArrayLiteralElement...) {
-		self.init(array: elements)
-	}
-}
-
-extension ImmutableJson: ExpressibleByDictionaryLiteral {
-	public typealias Key = String
-	public typealias Value = JsonValue
-	
-	public init(dictionaryLiteral elements: (Key, Value)...) {
-		self.init(dictionary: Dictionary.init(elements, uniquingKeysWith: { first, last in last }))
-	}
-}
-
-extension ImmutableJson: CustomStringConvertible {
+extension SimpleJson: CustomStringConvertible {
 	public var description: String {
-		return "ImmutableJson(\(String(describing: self.jsonValue)))"
+		return "SimpleJson(\(String(describing: self.jsonValue)))"
 	}
 }
 
-extension ImmutableJson: Equatable {
+extension SimpleJson: Equatable {
 	public static func == (lhs: Self, rhs: Self) -> Bool { lhs.jsonValue == rhs.jsonValue }
 	public static func == (lhs: Self, rhs: ()?) -> Bool {
 		if case .null = lhs.jsonValue {
@@ -187,9 +165,9 @@ extension ImmutableJson: Equatable {
 	public static func == (lhs: Self, rhs: [String: JsonValue]) -> Bool { lhs.jsonValue.dictionary == rhs }
 }
 
-extension ImmutableJson: Comparable {
+extension SimpleJson: Comparable {
 	
-	public static func < (lhs: ImmutableJson, rhs: ImmutableJson) -> Bool {
+	public static func < (lhs: SimpleJson, rhs: SimpleJson) -> Bool {
 		switch rhs.jsonValue {
 		case .integer(let value): return lhs < value
 		case .double(let value): return lhs < value
@@ -199,7 +177,7 @@ extension ImmutableJson: Comparable {
 		}
 	}
 	
-	public static func > (lhs: ImmutableJson, rhs: ImmutableJson) -> Bool {
+	public static func > (lhs: SimpleJson, rhs: SimpleJson) -> Bool {
 		switch rhs.jsonValue {
 		case .integer(let value): return lhs > value
 		case .double(let value): return lhs > value
@@ -209,7 +187,7 @@ extension ImmutableJson: Comparable {
 		}
 	}
 	
-	public static func >= (lhs: ImmutableJson, rhs: ImmutableJson) -> Bool {
+	public static func >= (lhs: SimpleJson, rhs: SimpleJson) -> Bool {
 		switch rhs.jsonValue {
 		case .integer(let value): return lhs >= value
 		case .double(let value): return lhs >= value
@@ -224,105 +202,80 @@ extension ImmutableJson: Comparable {
 		}
 	}
 	
-	public static func < (lhs: ImmutableJson, rhs: Int) -> Bool {
+	public static func < (lhs: SimpleJson, rhs: Int) -> Bool {
 		if case .integer(let integer1) = lhs.jsonValue {
 			return integer1 < rhs
 		}
 		return false
 	}
 	
-	public static func > (lhs: ImmutableJson, rhs: Int) -> Bool {
+	public static func > (lhs: SimpleJson, rhs: Int) -> Bool {
 		if case .integer(let integer1) = lhs.jsonValue {
 			return integer1 > rhs
 		}
 		return false
 	}
-	public static func >= (lhs: ImmutableJson, rhs: Int) -> Bool {
+	public static func >= (lhs: SimpleJson, rhs: Int) -> Bool {
 		if case .integer(let integer1) = lhs.jsonValue {
 			return integer1 >= rhs
 		}
 		return false
 	}
 	
-	public static func < (lhs: ImmutableJson, rhs: Double) -> Bool {
+	public static func < (lhs: SimpleJson, rhs: Double) -> Bool {
 		if case .double(let double1) = lhs.jsonValue {
 			return double1 < rhs
 		}
 		return false
 	}
-	public static func > (lhs: ImmutableJson, rhs: Double) -> Bool {
+	public static func > (lhs: SimpleJson, rhs: Double) -> Bool {
 		if case .double(let double1) = lhs.jsonValue {
 			return double1 > rhs
 		}
 		return false
 	}
-	public static func >= (lhs: ImmutableJson, rhs: Double) -> Bool {
+	public static func >= (lhs: SimpleJson, rhs: Double) -> Bool {
 		if case .double(let double1) = lhs.jsonValue {
 			return double1 >= rhs
 		}
 		return false
 	}
 	
-	public static func < (lhs: ImmutableJson, rhs: String) -> Bool {
+	public static func < (lhs: SimpleJson, rhs: String) -> Bool {
 		if case .string(let string1) = lhs.jsonValue {
 			return string1 < rhs
 		}
 		return false
 	}
-	public static func > (lhs: ImmutableJson, rhs: String) -> Bool {
+	public static func > (lhs: SimpleJson, rhs: String) -> Bool {
 		if case .string(let string1) = lhs.jsonValue {
 			return string1 > rhs
 		}
 		return false
 	}
-	public static func >= (lhs: ImmutableJson, rhs: String) -> Bool {
+	public static func >= (lhs: SimpleJson, rhs: String) -> Bool {
 		if case .string(let string1) = lhs.jsonValue {
 			return string1 >= rhs
 		}
 		return false
 	}
 	
-	public static func < (lhs: ImmutableJson, rhs: Bool) -> Bool {
+	public static func < (lhs: SimpleJson, rhs: Bool) -> Bool {
 		if case .boolean(let boolean1) = lhs.jsonValue {
 			return boolean1 == false
 		}
 		return false
 	}
-	public static func > (lhs: ImmutableJson, rhs: Bool) -> Bool {
+	public static func > (lhs: SimpleJson, rhs: Bool) -> Bool {
 		if case .boolean(let boolean1) = lhs.jsonValue {
 			return boolean1 == true && rhs == false
 		}
 		return false
 	}
-	public static func >= (lhs: ImmutableJson, rhs: Bool) -> Bool {
+	public static func >= (lhs: SimpleJson, rhs: Bool) -> Bool {
 		if case .boolean(let boolean1) = lhs.jsonValue {
 			return (boolean1 == true && rhs == false) || boolean1 == rhs
 		}
 		return false
-	}
-}
-
-// MARK: - Details
-
-public extension ImmutableJson {
-	@dynamicMemberLookup
-	class MemberStub {
-		var key: String
-		init(key: String = "") {
-			self.key = key
-		}
-		public subscript(dynamicMember member: String) -> MemberStub {
-			get {
-				let validKey: String
-				if self.key.isEmpty {
-					validKey = member
-				} else {
-					validKey = "\(self.key).\(member)"
-				}
-				return MemberStub(key: validKey)
-			} set {
-				self.key = newValue.key
-			}
-		}
 	}
 }

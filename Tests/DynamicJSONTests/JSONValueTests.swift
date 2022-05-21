@@ -41,19 +41,19 @@ final class JSONValueTests: XCTestCase {
 		XCTAssertEqual(jsonValue8.anyArray as? [String], ["aaa", "bb"] as [String])
 		
 		let jsonValue9: JsonValue = ["aaa", 1.5, 6]
-		let jsonValue9Array = try XCTUnwrap(jsonValue9.value.array)
+		let jsonValue9Array = try XCTUnwrap(jsonValue9.array)
 		XCTAssertEqual(jsonValue9Array[0].string, "aaa" as String)
 		XCTAssertEqual(jsonValue9Array[1].double, 1.5 as Double)
 		XCTAssertEqual(jsonValue9Array[2].integer, 6 as Int)
 		
 		let jsonValue10: JsonValue = [1,2,3]
-		XCTAssertEqual(jsonValue10.value.arrayValue(), [1,2,3] as [Int])
+		XCTAssertEqual(jsonValue10.arrayValue(), [1,2,3] as [Int])
 		
 		let jsonValue11: JsonValue = [1,2,nil]
-		XCTAssertEqual(jsonValue11.value.arrayValue(), [1,2,nil] as [Int?])
+		XCTAssertEqual(jsonValue11.arrayValue(), [1,2,nil] as [Int?])
 		
 		let jsonValue12: JsonValue = [1,2,nil]
-		XCTAssertEqual(jsonValue12.value.compactArrayValue(), [1,2] as [Int])
+		XCTAssertEqual(jsonValue12.compactArrayValue(), [1,2] as [Int])
 	}
 	
 	func testMultipleValues() {
