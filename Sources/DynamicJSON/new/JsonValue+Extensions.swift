@@ -290,16 +290,41 @@ extension JsonValue: Equatable {
 		}
 	}
 	
-	public func seemsEqual(to other: Self) -> Bool {
+	public static func ~= (lhs: Self, rhs: Self) -> Bool {
+		return lhs.isAlmostEqual(to: rhs, numberDelta: 0.01)
+	}
+	
+	/// `numberDelta` is only applied when comparing integers and doubles between them
+	public func isAlmostEqual(to other: Self, numberDelta: Double? = nil) -> Bool {
 		if self == other {
 			return true
 		}
 		
 		switch (self, other) {
 		case (.integer(let integer), .double(let double)):
-			return Double(integer) == double
+			if let numberDelta = numberDelta {
+				return abs(Double(integer) - double) <= numberDelta
+			} else {
+				return Double(integer) == double
+			}
 		case (.double(let double), .integer(let integer)):
-			return double == Double(integer)
+			if let numberDelta = numberDelta {
+				return abs(double - Double(integer)) <= numberDelta
+			} else {
+				return double == Double(integer)
+			}
+		case (.double(let double1), .double(let double2)):
+			if let numberDelta = numberDelta {
+				return abs(double1 - double2) <= numberDelta
+			} else {
+				return double1 == double2
+			}
+		case (.integer(let integer1), .integer(let integer2)):
+			if let numberDelta = numberDelta {
+				return abs(Double(integer1) - Double(integer2)) <= numberDelta
+			} else {
+				return integer1 == integer2
+			}
 		case (.string(let string), .integer(let integer)):
 			return string == String(integer)
 		case (.integer(let integer), .string(let string)):
@@ -308,9 +333,17 @@ extension JsonValue: Equatable {
 			return (boolean == true ? 1 : 0) == integer
 		case (.integer(let integer), .boolean(let boolean)):
 			return integer == (boolean == true ? 1 : 0)
+		case (.string(let string), .double(let double)):
+			return string == String(double)
+		case (.double(let double), .string(let string)):
+			return String(double) == string
+		case (.boolean(let boolean), .double(let double)):
+			return (boolean == true ? 1 : 0) == double
+		case (.double(let double), .boolean(let boolean)):
+			return double == (boolean == true ? 1 : 0)
 		case (.array(let array1), .array(let array2)):
 			return zip(array1, array2).contains { values in
-				!values.0.seemsEqual(to: values.1)
+				!values.0.isAlmostEqual(to: values.1)
 			} ? false : true
 		case (.dictionary(let dictionary1), .dictionary(let dictionary2)):
 			guard Set(dictionary1.keys) == Set(dictionary2.keys) else {
@@ -319,7 +352,7 @@ extension JsonValue: Equatable {
 			for key in dictionary1.keys {
 				if let value1 = dictionary1[key],
 				   let value2 = dictionary2[key],
-				   !value1.seemsEqual(to: value2)
+				   !value1.isAlmostEqual(to: value2)
 				{
 					return false
 				}
