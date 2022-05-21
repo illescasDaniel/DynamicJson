@@ -73,7 +73,7 @@ final class SimpleJsonTests: XCTestCase {
 	}
 	
 	func testDictionaryInit() throws {
-		let json = SimpleJson(dictionary: [
+		let json = SimpleJson(json: [
 			"name": "Daniel",
 			"age": 25,
 			"parents": [
@@ -121,7 +121,7 @@ final class SimpleJsonTests: XCTestCase {
 	}
 	
 	func testArrayInit() throws {
-		let json = SimpleJson(array: [
+		let json = SimpleJson(json: [
 			[
 				"name": "Mom",
 				"age": 50

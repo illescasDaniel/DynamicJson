@@ -17,7 +17,7 @@ public struct SimpleJson {
 	private let jsonValue: JsonValue
 	
 	public static var null: SimpleJson {
-		SimpleJson(anyJsonObject: .null)
+		SimpleJson(anyJsonValue: .null)
 	}
 	
 	// MARK: - Initializers
@@ -25,18 +25,19 @@ public struct SimpleJson {
 	public init(data: Data) {
 		let decodedJson = try? JSONSerialization.jsonObject(with: data, options: [])
 		if let validDictionary = decodedJson as? [String: Any] {
-			self.init(anyJsonObject: JsonValue(any: validDictionary) ?? .null)
+			self.init(anyJsonValue: JsonValue(any: validDictionary) ?? .null)
 		} else {
 			self = .null
 		}
 	}
 	
-	public init(array: [JsonValue]) {
-		self.init(anyJsonObject: JsonValue(array))
-	}
-	
-	public init(dictionary: [String: JsonValue]) {
-		self.init(anyJsonObject: JsonValue(dictionary))
+	public init(json: JsonObject) {
+		switch json {
+		case .array(let jsonValueArray):
+			self.init(anyJsonValue: JsonValue(jsonValueArray))
+		case .dictionary(let jsonValueDictionary):
+			self.init(anyJsonValue: JsonValue(jsonValueDictionary))
+		}
 	}
 	
 	public init(rawJsonString: String) {
@@ -46,8 +47,8 @@ public struct SimpleJson {
 	
 	// MARK: Private initializers
 	
-	private init(anyJsonObject: JsonValue) {
-		self.jsonValue = anyJsonObject
+	private init(anyJsonValue: JsonValue) {
+		self.jsonValue = anyJsonValue
 	}
 	
 	// MARK: - Subscripts
@@ -60,7 +61,7 @@ public struct SimpleJson {
 	// array subscript by index (e.g.: myJson[1])
 	public subscript(_ index: Int) -> SimpleJson {
 		guard let array = self.jsonValue.array else { return .null }
-		return array.indices.contains(index) ? SimpleJson(anyJsonObject: array[index]) : .null
+		return array.indices.contains(index) ? SimpleJson(anyJsonValue: array[index]) : .null
 	}
 	
 	// keypath subscript using string paths (e.g.: myJson["address.street"]
@@ -79,7 +80,7 @@ public struct SimpleJson {
 		for (index, key) in keys.enumerated() {
 			if index == keys.count - 1 {
 				let jsonValue = currentJson.jsonValue.dictionary?[String(key)] ?? .null
-				return SimpleJson(anyJsonObject: jsonValue)
+				return SimpleJson(anyJsonValue: jsonValue)
 			} else {
 				let jsonChild: SimpleJson = currentJson[dynamicMember: String(key)]
 				if jsonChild.jsonValue.dictionary != nil {
@@ -93,7 +94,7 @@ public struct SimpleJson {
 	// keypath subscript using string (e.g.: myJson["address"]
 	public subscript(_ key: String) -> SimpleJson {
 		guard let value = self.jsonValue.dictionary?[key] else { return .null }
-		return SimpleJson(anyJsonObject: value)
+		return SimpleJson(anyJsonValue: value)
 	}
 	
 	// MARK: - Codable
