@@ -249,20 +249,15 @@ public extension JsonValue {
 	}
 	var any: Any? {
 		switch self {
-		case .integer(let value):
-			return value
-		case .double(let value):
-			return value
-		case .string(let value):
-			return value
-		case .boolean(let value):
-			return value
+		case .integer(let value): return value
+		case .double(let value): return value
+		case .string(let value): return value
+		case .boolean(let value): return value
 		case .array(let value):
 			return value.map { $0.any }
 		case .dictionary(let value):
 			return value.compactMapValues { $0.any }
-		case .null:
-			return nil
+		case .null: return nil
 		}
 	}
 	var isNull: Bool {
